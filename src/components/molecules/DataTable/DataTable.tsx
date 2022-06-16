@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import { alpha } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-import Collapse from '@mui/material/Collapse';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import { visuallyHidden } from '@mui/utils';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import clsx from 'clsx';
+import { createStyles, lighten, makeStyles, Theme } from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TablePagination from '@material-ui/core/TablePagination';
+import TableRow from '@material-ui/core/TableRow';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
+import Box from '@material-ui/core/Box';
+import Checkbox from '@material-ui/core/Checkbox';
+import Collapse from '@material-ui/core/Collapse';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import useStyles from './styles';
 
 type DataItem = {
@@ -32,14 +32,15 @@ type DataItem = {
   transmissionStartDate: string,
   transmissionEndDate: string,
   activeFlag: string,
-  sftpFilename: string
+  sftpFilename: string,
 };
 
 type ColumnItem = {
   disablePadding?: boolean, 
   id: keyof DataItem,
   label: string,
-  numeric?: boolean
+  numeric?: boolean,
+  show: boolean,
 };
 
 type Order = 'asc' | 'desc';
@@ -157,40 +158,42 @@ const DataTable = ({ columns, data, striped, showSelection, showCollapse }: Data
               </TableCell>
           }
           {columns.map((headCell) => (
-            <TableCell
-              key={headCell.id}
-              align={headCell.numeric ? 'right' : 'left'}
-              padding={headCell.disablePadding ? 'none' : 'normal'}
-              sortDirection={orderBy === headCell.id ? order : false}
-            >
-              <TableSortLabel
-                active={orderBy === headCell.id}
-                direction={orderBy === headCell.id ? order : 'asc'}
-                onClick={createSortHandler(headCell.id)}
+            headCell.show &&
+              <TableCell
+                key={headCell.id}
+                align={headCell.numeric ? 'right' : 'left'}
+                padding={headCell.disablePadding ? 'none' : 'normal'}
+                sortDirection={orderBy === headCell.id ? order : false}
               >
-                {headCell.label}
-                {orderBy === headCell.id ? (
-                  <Box component="span" sx={visuallyHidden}>
-                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                  </Box>
-                ) : null}
-              </TableSortLabel>
-            </TableCell>
+                <TableSortLabel
+                  active={orderBy === headCell.id}
+                  direction={orderBy === headCell.id ? order : 'asc'}
+                  onClick={createSortHandler(headCell.id)}
+                >
+                  {headCell.label}
+                  {orderBy === headCell.id ? (
+                    <Box component="span">
+                      {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                    </Box>
+                  ) : null}
+                </TableSortLabel>
+              </TableCell>
           ))}
         </TableRow>
       </TableHead>
     );
   };
 
-  const Row = (props: { row: DataItem, isItemSelected: any, labelId: any, showCollapse: boolean }) => {
-    const { row, isItemSelected, labelId, showCollapse } = props;
+  const Row = (props: { row: DataItem, isItemSelected: any, labelId: any, showCollapse: boolean, columns: Array<ColumnItem> }) => {
+    const { row, isItemSelected, labelId, showCollapse, columns } = props;
     const [open, setOpen] = useState(false);
+
+    const showColumns = columns.filter((item, index) => item.show);
 
     return (
       <>
         <TableRow
           hover
-          // onClick={(event: React.MouseEvent<unknown, MouseEvent>) => handleClick(event, row.id)}
           role={showSelection ? 'checkbox' : undefined}
           aria-checked={isItemSelected}
           tabIndex={-1}
@@ -222,7 +225,10 @@ const DataTable = ({ columns, data, striped, showSelection, showCollapse }: Data
                 />
               </TableCell>
           }
-          <TableCell
+          {
+            showColumns.map((item, index) => <TableCell key={index}>{row[item.id]}</TableCell>)
+          }
+          {/* <TableCell
             component="th"
             id={labelId}
             scope="row"
@@ -233,7 +239,7 @@ const DataTable = ({ columns, data, striped, showSelection, showCollapse }: Data
           <TableCell>{row.projectId}</TableCell>
           <TableCell>{row.timeStamp}</TableCell>
           <TableCell>{row.fileExtension}</TableCell>
-          <TableCell>{row.fileSize}</TableCell>
+          <TableCell>{row.fileSize}</TableCell> */}
         </TableRow>
         {
           showCollapse &&
@@ -262,12 +268,12 @@ const DataTable = ({ columns, data, striped, showSelection, showCollapse }: Data
   };
 
   return (
-    <Paper sx={{ width: '100%', mb: 2 }}>
+    <Paper className={styles.paper}>
       <TableContainer>
         <Table
-          sx={{ minWidth: 750 }}
+          className={styles.table}
           aria-labelledby="tableTitle"
-          size="medium"
+          aria-label="enhanced table"
         >
           <EnhancedTableHead
             numSelected={selected.length}
@@ -287,7 +293,14 @@ const DataTable = ({ columns, data, striped, showSelection, showCollapse }: Data
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
-                  <Row key={index} row={row} isItemSelected={isItemSelected} labelId={labelId} showCollapse={showCollapse} />
+                  <Row 
+                    key={index} 
+                    row={row} 
+                    isItemSelected={isItemSelected} 
+                    labelId={labelId} 
+                    columns={columns}
+                    showCollapse={showCollapse} 
+                  />
                 );
               })}
             {emptyRows > 0 && (

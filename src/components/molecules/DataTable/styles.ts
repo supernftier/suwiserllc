@@ -1,32 +1,30 @@
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 type styleProps = {
   striped: boolean;
 };
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     width: '100%',
   },
-  tableHeader: {
-    display: 'flex',
-    border: '1px solid black',
-    minHeight: '30px',
+  paper: {
+    width: '100%',
+    marginBottom: theme.spacing(2),
   },
-  tableHeaderCell: {
-    flexShrink: 0,
+  table: {
+    minWidth: 750,
   },
-  tableBody: {
-    display: 'column',
-  },
-  tableRow: {
-    display: 'flex',
-    '&:nth-child(odd)': {
-      background: (props: styleProps) => (props?.striped ? 'gray' : 'none'),
-    },
-  },
-  tableCell: {
-    display: 'flex',
+  visuallyHidden: {
+    border: 0,
+    clip: 'rect(0 0 0 0)',
+    height: 1,
+    margin: -1,
+    overflow: 'hidden',
+    padding: 0,
+    position: 'absolute',
+    top: 20,
+    width: 1,
   },
   detailContainer: {
     display: 'flex',
